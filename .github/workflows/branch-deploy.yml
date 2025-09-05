@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository
+      # Checkout repo
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -26,8 +26,8 @@ jobs:
       - name: Terraform Init
         run: terraform init -reconfigure
 
-      # Select/Create workspace based on branch (after init)
-      - name: Select/Create Workspace Based on Branch
+      # Select or create workspace based on branch
+      - name: Select/Create Workspace
         run: |
           if [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
             terraform workspace select dev || terraform workspace new dev
@@ -39,17 +39,17 @@ jobs:
 
       # Terraform Plan
       - name: Terraform Plan
-        run: terraform plan -var="secret_value=${{ secrets.SECRET_VALUE }}"
+        run: terraform plan
 
       # Terraform Apply
       - name: Terraform Apply
-        run: terraform apply -var="secret_value=${{ secrets.SECRET_VALUE }}" -auto-approve
+        run: terraform apply -auto-approve
 
-      # List files for debugging
-      - name: List files (debug)
+      # Debug: List files
+      - name: List files
         run: ls -la
 
-      # Upload deployment.log
+      # Upload deployment.log artifact
       - name: Upload Deployment Log
         if: always()
         uses: actions/upload-artifact@v4
