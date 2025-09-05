@@ -12,14 +12,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.7.0
 
+      # Select/Create workspace based on branch
       - name: Select/Create Workspace Based on Branch
         run: |
           if [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
@@ -30,12 +33,27 @@ jobs:
             terraform workspace select prod || terraform workspace new prod
           fi
 
+      # Initialize Terraform with backend reconfiguration
       - name: Terraform Init
         run: terraform init -reconfigure
 
+      # Terraform Plan
       - name: Terraform Plan
         run: terraform plan -var="secret_value=${{ secrets.SECRET_VALUE }}"
 
+      # Terraform Apply
       - name: Terraform Apply
-        run: terraform apply -var="secret_value_
+        run: terraform apply -var="secret_value=${{ secrets.SECRET_VALUE }}" -auto-approve
+
+      # Debug: List files to verify deployment.log
+      - name: List files (debug)
+        run: ls -la
+
+      # Upload deployment.log artifact
+      - name: Upload Deployment Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-log
+          path: ./deployment.log
 
